@@ -46,5 +46,45 @@ const getAllEntries = async  (req: Request, res: Response) => {
     }
 }
 
+const updateEntry = async (req: Request, res: Response) => {
+    const { body: {text, title}, params: { entryId }} = req;
 
-export { addEntry, getAllEntries };
+    try {
+        const entry = db.collection('entries').doc(entryId);
+        const currentData = (await entry.get()).data() || {};
+
+        const entryObject = {
+            title: title || currentData.title,
+            text: text || currentData.text,
+        }
+        
+        await entry.set(entryObject);
+
+        return res.status(200).json({
+            status: "success",
+            message: "entry updated successfully",
+            data: entryObject,
+        });
+
+    } catch(error: any) {
+        return res.status(500).json(error.message);
+    }
+}
+
+const deleteEntry = async (req: Request, res: Response) => {
+    const { entryId } = req.params;
+
+    try {
+        await db.collection('entries').doc(entryId).delete();
+
+        return res.status(200).json({
+            status: "success",
+            message: "entry deleted successfully",
+        });
+
+    } catch(error: any) {
+        return res.status(500).json(error.message);
+    }
+}
+
+export { addEntry, getAllEntries, updateEntry, deleteEntry };
